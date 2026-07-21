@@ -111,7 +111,7 @@
   body.game-active .canvas-container {
     width: calc(100vw - 32px);
     height: auto;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 32 / 18;
     max-height: calc(100dvh - var(--hud-height) - 48px);
   }
 

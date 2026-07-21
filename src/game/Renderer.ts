@@ -35,24 +35,26 @@ export class Renderer {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    const width = parent.clientWidth;
-    const height = parent.clientHeight;
-
-    // Limit dpr to a maximum of 2 to avoid performance issues on high-res displays
+    const rect = this.canvas.getBoundingClientRect();
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    this.canvas.width = Math.round(width * this.dpr);
-    this.canvas.height = Math.round(height * this.dpr);
+    this.canvas.width = Math.round(rect.width * this.dpr);
+    this.canvas.height = Math.round(rect.height * this.dpr);
 
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
+    this.canvas.style.width = `${rect.width}px`;
+    this.canvas.style.height = `${rect.height}px`;
 
-    // Reset transform, then scale coordinates for crisp rendering in CSS pixels
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.scale(this.dpr, this.dpr);
+    // Reset transform, then scale coordinates for crisp rendering in CSS pixels using dpr
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    // cellSize based on grid dimensions (perfectly square because container is 16:9)
-    this.cellSize = width / BOARD_COLUMNS;
+    const cellWidth = rect.width / BOARD_COLUMNS;
+    const cellHeight = rect.height / BOARD_ROWS;
+
+    this.cellSize = Math.min(cellWidth, cellHeight);
+
+    if (Math.abs(cellWidth - cellHeight) > 0.5) {
+      console.warn(`Board aspect ratio does not match logical grid: cellWidth=${cellWidth}, cellHeight=${cellHeight}`);
+    }
   }
 
   public clear(): void {

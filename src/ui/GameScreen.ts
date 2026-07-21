@@ -116,10 +116,12 @@ export class GameScreen {
 
   public show(): void {
     this.container.classList.remove('hidden');
+    document.body.classList.add('game-active');
   }
 
   public hide(): void {
     this.container.classList.add('hidden');
+    document.body.classList.remove('game-active');
     this.hideAllOverlays();
   }
 

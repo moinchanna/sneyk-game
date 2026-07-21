@@ -52,37 +52,61 @@ export class Snake {
   }
 
   /**
-   * Move the snake forward one cell.
-   * Returns the removed tail position if it didn't grow, or null if it did.
+   * Calculate next head position without mutating snake body.
    */
-  public move(nextDir: Direction): Position | null {
+  public getNextHead(dir: Direction): Position {
+    const currentHead = this.getHead();
+    const vector = DIRECTIONS[dir];
+    if (!vector) {
+      throw new Error(`Invalid direction: ${dir}`);
+    }
+    return {
+      x: currentHead.x + vector.x,
+      y: currentHead.y + vector.y
+    };
+  }
+
+  /**
+   * Checks if next head position collides with the snake body.
+   * If ateFood is false, the tail will move out of the way, so it is ignored.
+   */
+  public willCollideWithSelf(nextHead: Position, ateFood: boolean): boolean {
+    const segmentsToCheck = ateFood ? this.body : this.body.slice(0, -1);
+    return segmentsToCheck.some(seg => seg.x === nextHead.x && seg.y === nextHead.y);
+  }
+
+  /**
+   * Commit a move with nextHead, nextDir and whether it ate food.
+   */
+  public commitMove(nextHead: Position, nextDir: Direction, ateFood: boolean): Position | null {
     // Store current state as previous body for rendering interpolation
     this.previousBody = this.body.map(pos => ({ ...pos }));
 
     this.direction = nextDir;
-    const currentHead = this.getHead();
-    const vector = DIRECTIONS[nextDir];
-
-    if (!vector) {
-      throw new Error(`Invalid direction: ${nextDir}`);
-    }
-
-    const newHead: Position = {
-      x: currentHead.x + vector.x,
-      y: currentHead.y + vector.y
-    };
 
     // Add new head to body
-    this.body.unshift(newHead);
+    this.body.unshift(nextHead);
 
-    if (this.growPending > 0) {
-      this.growPending--;
+    if (ateFood) {
       return null; // Grew, so tail was not removed
     } else {
       // Remove tail
       const tail = this.body.pop();
       return tail ? tail : null;
     }
+  }
+
+  /**
+   * Move the snake forward one cell (legacy method).
+   * Returns the removed tail position if it didn't grow, or null if it did.
+   */
+  public move(nextDir: Direction): Position | null {
+    const nextHead = this.getNextHead(nextDir);
+    const ateFood = this.growPending > 0;
+    if (ateFood) {
+      this.growPending--;
+    }
+    return this.commitMove(nextHead, nextDir, ateFood);
   }
 
   /**

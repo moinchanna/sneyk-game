@@ -1,4 +1,4 @@
-import { GameState, GameSettings, Position } from './types';
+import { GameState, GameOverReason, GameSettings, Position } from './types';
 import { Snake } from './Snake';
 import { Food } from './Food';
 import { InputManager } from './InputManager';
@@ -199,35 +199,44 @@ export class Game {
   private tick(): void {
     if (this.state !== 'PLAYING') return;
 
-    // Get next buffered direction
+    // 1. Read current/next buffered direction
     const nextDir = this.input.nextDirection();
 
-    // Move the snake
-    this.snake.move(nextDir);
+    // 2. Calculate nextHead
+    const nextHead = this.snake.getNextHead(nextDir);
 
-    // Check collisions
-    if (this.snake.checkWallCollision(BOARD_COLUMNS, BOARD_ROWS)) {
-      this.triggerGameOver('You crashed into the wall!');
+    // 3. Check whether nextHead is outside the board
+    const outsideBoard =
+      nextHead.x < 0 ||
+      nextHead.x >= BOARD_COLUMNS ||
+      nextHead.y < 0 ||
+      nextHead.y >= BOARD_ROWS;
+
+    if (outsideBoard) {
+      this.triggerGameOver('wall');
       return;
     }
 
-    if (this.snake.checkSelfCollision()) {
-      this.triggerGameOver('You bit your own tail!');
-      return;
-    }
-
-    // Check if food was eaten
-    const head = this.snake.getHead();
+    // 5. Check whether nextHead equals the food
     const foodPos = this.food.getPosition();
+    const ateFood = nextHead.x === foodPos.x && nextHead.y === foodPos.y;
 
-    if (head.x === foodPos.x && head.y === foodPos.y) {
-      this.handleFoodEaten(foodPos);
+    // 4. Check whether nextHead collides with the snake
+    if (this.snake.willCollideWithSelf(nextHead, ateFood)) {
+      this.triggerGameOver('self');
+      return;
+    }
+
+    // 6. Commit exactly one logical move
+    this.snake.commitMove(nextHead, nextDir, ateFood);
+
+    // 7. Apply growth and score if food was eaten
+    if (ateFood) {
+      this.handleFoodEaten(nextHead);
     }
   }
 
   private handleFoodEaten(pos: Position): void {
-    this.snake.grow();
-
     // Add score
     this.score += 10;
 
@@ -249,7 +258,7 @@ export class Game {
     const spawned = this.food.spawn(this.snake.getBody(), BOARD_COLUMNS, BOARD_ROWS);
     if (!spawned) {
       // Grid is full! Snake filled the entire board
-      this.triggerGameOver('Congratulations! You filled the grid!');
+      this.triggerGameOver('win');
       return;
     }
 
@@ -260,7 +269,7 @@ export class Game {
     this.announceAccessibility(`Score: ${this.score}`);
   }
 
-  private triggerGameOver(msg: string): void {
+  private triggerGameOver(reason: GameOverReason): void {
     this.setState('GAME_OVER');
     this.loop.pauseSimulation();
 
@@ -285,6 +294,15 @@ export class Game {
     this.notifyScore();
 
     // Set message details in UI
+    let msg = 'Game Over';
+    if (reason === 'wall') {
+      msg = 'You crashed into the wall!';
+    } else if (reason === 'self') {
+      msg = 'You ran into yourself!';
+    } else if (reason === 'win') {
+      msg = 'Congratulations! You filled the grid!';
+    }
+
     const gameOverMsg = document.getElementById('game-over-msg');
     if (gameOverMsg) {
       gameOverMsg.textContent = msg;

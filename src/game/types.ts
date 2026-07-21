@@ -7,6 +7,8 @@ export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 export type GameState = 'HOME' | 'READY' | 'PLAYING' | 'PAUSED' | 'GAME_OVER';
 
+export type GameOverReason = 'wall' | 'self' | 'win';
+
 export interface Particle {
   x: number;
   y: number;

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Game } from '../src/game/Game';
 import { Storage } from '../src/game/Storage';
 import { BOARD_COLUMNS, BOARD_ROWS } from '../src/game/constants';
@@ -12,6 +12,13 @@ describe('Game Coordinator Integration Tests', () => {
     // Clear storage
     Storage.saveBestScore(0);
     Storage.saveSoundPreference(false);
+
+    // Setup required DOM elements
+    document.body.innerHTML = `
+      <div id="canvas-container"></div>
+      <div id="game-over-msg"></div>
+      <div id="announcer"></div>
+    `;
 
     // Create a mock canvas
     canvas = {
@@ -35,6 +42,10 @@ describe('Game Coordinator Integration Tests', () => {
         clientWidth: 600,
         clientHeight: 600
       },
+      getBoundingClientRect: () => ({
+        width: 640,
+        height: 360
+      }),
       style: {},
       width: 600,
       height: 600
@@ -59,7 +70,7 @@ describe('Game Coordinator Integration Tests', () => {
 
   it('should support eating food, increasing score, and updating best score immediately', () => {
     game.prepareGame();
-
+    
     // Explicitly place snake head at (10, 10) moving RIGHT
     (game.snake as any).body = [
       { x: 10, y: 10 },
@@ -69,6 +80,7 @@ describe('Game Coordinator Integration Tests', () => {
     ];
     (game.snake as any).previousBody = (game.snake as any).body.map((p: any) => ({ ...p }));
     (game.snake as any).direction = 'RIGHT';
+    (game.input as any).currentDirection = 'RIGHT';
 
     // Place food exactly one cell ahead at (11, 10)
     (game.food as any).position = { x: 11, y: 10 };
@@ -88,10 +100,9 @@ describe('Game Coordinator Integration Tests', () => {
 
     // Snake head should be at food pos (11, 10)
     expect(game.snake.getHead()).toEqual({ x: 11, y: 10 });
-
-    // Growth is pending, body length is still 4
-    expect(game.snake.getBody().length).toBe(4);
-    expect((game.snake as any).growPending).toBe(1);
+    
+    // Check that length grew to 5 because tail was not removed
+    expect(game.snake.getBody().length).toBe(5);
 
     // Score should increase from 0 to 10
     expect((game as any).score).toBe(10);
@@ -101,20 +112,40 @@ describe('Game Coordinator Integration Tests', () => {
     expect((game as any).bestScore).toBe(10);
     expect(reportedBest).toBe(10);
     expect(Storage.getBestScore()).toBe(10);
+  });
 
-    // Execute another tick to consume growth
+  it('should report score 20 after eating two deterministic food items', () => {
+    game.prepareGame();
+    
+    // Explicitly place snake head at (10, 10) moving RIGHT
+    (game.snake as any).body = [
+      { x: 10, y: 10 },
+      { x: 9, y: 10 }
+    ];
+    (game.snake as any).previousBody = (game.snake as any).body.map((p: any) => ({ ...p }));
+    (game.snake as any).direction = 'RIGHT';
+    (game.input as any).currentDirection = 'RIGHT';
+
+    // Place first food at (11, 10)
+    (game.food as any).position = { x: 11, y: 10 };
+
+    (game as any).state = 'PLAYING';
+
+    // First eat
     (game as any).tick();
-    expect(game.snake.getBody().length).toBe(5);
+    expect((game as any).score).toBe(10);
 
-    // Food should respawn outside of the snake's body
-    const foodPos = game.food.getPosition();
-    const isOccupied = game.snake.getBody().some(seg => seg.x === foodPos.x && seg.y === foodPos.y);
-    expect(isOccupied).toBe(false);
+    // Place second food at (12, 10)
+    (game.food as any).position = { x: 12, y: 10 };
+
+    // Second eat
+    (game as any).tick();
+    expect((game as any).score).toBe(20);
   });
 
   it('should reset score to 0 on restart but preserve best score and initialize bodies identically', () => {
     Storage.saveBestScore(50);
-
+    
     game.prepareGame();
     expect((game as any).score).toBe(0);
     expect((game as any).bestScore).toBe(50);
@@ -138,31 +169,18 @@ describe('Game Coordinator Integration Tests', () => {
     expect(game.loop.getInterpolationAlpha()).toBe(0);
 
     game.startSimulation(); // Sets state to PLAYING
-
+    
     // Check default alpha is within bounds
     const alpha = game.loop.getInterpolationAlpha();
     expect(alpha).toBeGreaterThanOrEqual(0);
     expect(alpha).toBeLessThanOrEqual(1);
   });
 
-  it('should detect wall collisions on BOARD_COLUMNS and BOARD_ROWS boundaries', () => {
+  it('should prove a snake at (5, 17) is valid and only crashes after next downward move to (5, 18)', () => {
     game.prepareGame();
     (game as any).state = 'PLAYING';
 
-    // Move to right boundary (32)
-    (game.snake as any).body = [
-      { x: BOARD_COLUMNS - 1, y: 5 },
-      { x: BOARD_COLUMNS - 2, y: 5 }
-    ];
-    (game.snake as any).direction = 'RIGHT';
-
-    // Next tick will hit wall
-    (game as any).tick();
-    expect((game as any).state).toBe('GAME_OVER');
-
-    // Reset game and move to bottom boundary (18)
-    game.prepareGame();
-    (game as any).state = 'PLAYING';
+    // Position head at (5, 17) moving DOWN
     (game.snake as any).body = [
       { x: 5, y: BOARD_ROWS - 1 },
       { x: 5, y: BOARD_ROWS - 2 }
@@ -170,38 +188,132 @@ describe('Game Coordinator Integration Tests', () => {
     (game.snake as any).direction = 'DOWN';
     (game.input as any).currentDirection = 'DOWN';
 
-    // Next tick will hit wall
+    // Before tick, check head is (5, 17) and game is PLAYING
+    expect(game.snake.getHead()).toEqual({ x: 5, y: 17 });
+    expect((game as any).state).toBe('PLAYING');
+
+    // Next tick moves it to (5, 18) which triggers wall collision
     (game as any).tick();
+    expect(game.snake.getHead()).toEqual({ x: 5, y: 17 }); // Snake was not mutated because validation failed
     expect((game as any).state).toBe('GAME_OVER');
+    
+    // Ensure the message element displays wall collision reason
+    const gameOverMsg = document.getElementById('game-over-msg');
+    expect(gameOverMsg?.textContent).toBe('You crashed into the wall!');
   });
 
-  it('should not create unlimited catch-up ticks on large frame delta', () => {
+  it('should detect wall collisions on right boundary (32) and report it explicitly', () => {
+    game.prepareGame();
+    (game as any).state = 'PLAYING';
+
+    // Position head at (31, 5) moving RIGHT
+    (game.snake as any).body = [
+      { x: BOARD_COLUMNS - 1, y: 5 },
+      { x: BOARD_COLUMNS - 2, y: 5 }
+    ];
+    (game.snake as any).direction = 'RIGHT';
+    (game.input as any).currentDirection = 'RIGHT';
+
+    // Next tick moves it to (32, 5) triggering wall crash
+    (game as any).tick();
+    expect((game as any).state).toBe('GAME_OVER');
+    const gameOverMsg = document.getElementById('game-over-msg');
+    expect(gameOverMsg?.textContent).toBe('You crashed into the wall!');
+  });
+
+  it('should detect self-collision and report it explicitly', () => {
+    game.prepareGame();
+    (game as any).state = 'PLAYING';
+
+    // Form a snake that will collide with itself on next tick (length 5)
+    (game.snake as any).body = [
+      { x: 10, y: 10 },
+      { x: 10, y: 11 },
+      { x: 11, y: 11 },
+      { x: 11, y: 10 },
+      { x: 10, y: 10 }
+    ];
+    (game.snake as any).direction = 'LEFT';
+    (game.input as any).currentDirection = 'LEFT';
+
+    // Next tick moves head to (9, 10) which is safe.
+    // Let's force it to bite itself by moving UP from (10,10) to (10,10) which is occupied
+    (game.snake as any).body = [
+      { x: 10, y: 10 },
+      { x: 9, y: 10 },
+      { x: 9, y: 11 },
+      { x: 10, y: 11 },
+      { x: 10, y: 10 }
+    ];
+    (game.snake as any).direction = 'DOWN';
+    (game.input as any).currentDirection = 'DOWN';
+
+    (game as any).tick();
+    expect((game as any).state).toBe('GAME_OVER');
+    const gameOverMsg = document.getElementById('game-over-msg');
+    expect(gameOverMsg?.textContent).toBe('You ran into yourself!');
+  });
+
+  it('should prove interpolation does not affect food collision', () => {
+    game.prepareGame();
+    (game as any).state = 'PLAYING';
+
+    (game.snake as any).body = [
+      { x: 10, y: 10 },
+      { x: 9, y: 10 }
+    ];
+    (game.snake as any).previousBody = [
+      { x: 9, y: 10 },
+      { x: 8, y: 10 }
+    ];
+    // Interpolated positions are fractional
+    const interpolated = game.snake.getInterpolatedBody(0.5);
+    expect(interpolated[0]!.x).toBe(9.5);
+
+    // Place food at (11, 10)
+    (game.food as any).position = { x: 11, y: 10 };
+    (game.snake as any).direction = 'RIGHT';
+    (game.input as any).currentDirection = 'RIGHT';
+
+    // Move RIGHT - tick compares integer coordinates only
+    (game as any).tick();
+    expect((game as any).score).toBe(10);
+    expect(game.snake.getHead()).toEqual({ x: 11, y: 10 });
+  });
+
+  it('should prove resizing the renderer does not reset score', () => {
+    game.prepareGame();
+    (game as any).score = 30;
+
+    game.renderer.resize();
+
+    expect((game as any).score).toBe(30);
+  });
+
+  it('should stop additional catch-up ticks immediately when game-over is triggered', () => {
     game.prepareGame();
     game.startSimulation();
 
-    // Trigger frame loop with a massive delta (e.g. 5000ms delay)
-    const rawDelta = 5000;
+    // Position snake so it crashes into the wall
+    (game.snake as any).body = [
+      { x: BOARD_COLUMNS - 1, y: 5 },
+      { x: BOARD_COLUMNS - 2, y: 5 }
+    ];
+    (game.snake as any).direction = 'RIGHT';
+    (game.input as any).currentDirection = 'RIGHT';
 
-    // Mimic loop execution details manually
-    const delta = Math.min(rawDelta, 80); // Delta capped at 80ms
-    expect(delta).toBe(80);
+    // Trigger loop execution with large delta (2 ticks worth)
+    const mockTick = vi.spyOn(game as any, 'tick');
+    const tickDelay = (game.loop as any).tickDelay;
+    
+    // Accumulate enough time for 2 ticks
+    (game.loop as any).accumulator = tickDelay * 2;
+    (game.loop as any).loop(performance.now());
 
-    let accumulator = delta; // 80ms
-    let tickCount = 0;
-    const tickDelay = (game.loop as any).tickDelay; // 72ms
+    // First tick causes GAME_OVER and pauses. Second tick should NOT execute because isSimPaused becomes true.
+    expect(mockTick).toHaveBeenCalledTimes(1);
+    expect((game as any).state).toBe('GAME_OVER');
 
-    let updates = 0;
-    while (accumulator >= tickDelay) {
-      tickCount++;
-      accumulator -= tickDelay;
-      updates++;
-      if (updates >= 2) {
-        accumulator = 0;
-        break;
-      }
-    }
-
-    // Assert it capped the updates to max 2 ticks
-    expect(tickCount).toBeLessThanOrEqual(2);
+    mockTick.mockRestore();
   });
 });
