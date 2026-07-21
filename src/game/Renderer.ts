@@ -35,20 +35,27 @@ export class Renderer {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    const rect = this.canvas.getBoundingClientRect();
+    // Use parent's client dimensions; fallback to canvas attributes or defaults if zero.
+    let width = parent.clientWidth;
+    let height = parent.clientHeight;
+    if (width === 0 || height === 0) {
+      width = this.canvas.width || 400;
+      height = this.canvas.height || 400;
+    }
+
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    this.canvas.width = Math.round(rect.width * this.dpr);
-    this.canvas.height = Math.round(rect.height * this.dpr);
+    this.canvas.width = Math.round(width * this.dpr);
+    this.canvas.height = Math.round(height * this.dpr);
 
-    this.canvas.style.width = `${rect.width}px`;
-    this.canvas.style.height = `${rect.height}px`;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
 
-    // Reset transform, then scale coordinates for crisp rendering in CSS pixels using dpr
+    // Reset transform for crisp rendering.
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
 
-    const cellWidth = rect.width / BOARD_COLUMNS;
-    const cellHeight = rect.height / BOARD_ROWS;
+    const cellWidth = width / BOARD_COLUMNS;
+    const cellHeight = height / BOARD_ROWS;
 
     this.cellSize = Math.min(cellWidth, cellHeight);
 
@@ -58,8 +65,8 @@ export class Renderer {
   }
 
   public clear(): void {
-    const w = this.canvas.clientWidth;
-    const h = this.canvas.clientHeight;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
     this.ctx.fillStyle = '#050506'; // --board-bg
     this.ctx.fillRect(0, 0, w, h);
   }
@@ -167,8 +174,8 @@ export class Renderer {
 
     // Segment occupies 72% of each logical cell
     const segmentRatio = 0.72;
-    const segmentSize = Math.max(8, Math.floor(this.cellSize * segmentRatio));
-    const segmentOffset = (this.cellSize - segmentSize) / 2;
+    const segmentSize = Math.floor(this.cellSize * segmentRatio);
+    const segmentOffset = Math.max(0, (this.cellSize - segmentSize) / 2);
 
     body.forEach((segment, index) => {
       const isHead = index === 0;
@@ -237,8 +244,8 @@ export class Renderer {
     const pos = food.getPosition();
     // Food occupies 74% of each logical cell
     const foodRatio = 0.74;
-    const segmentSize = Math.max(9, Math.floor(this.cellSize * foodRatio));
-    const segmentOffset = (this.cellSize - segmentSize) / 2;
+    const segmentSize = Math.floor(this.cellSize * foodRatio);
+    const segmentOffset = Math.max(0, (this.cellSize - segmentSize) / 2);
     const x = pos.x * this.cellSize + segmentOffset;
     const y = pos.y * this.cellSize + segmentOffset;
     const radius = 1;

@@ -312,6 +312,8 @@ export class Game {
   }
 
   private render(): void {
+    // Ensure renderer dimensions match current canvas size before drawing
+    this.renderer.resize();
     const alpha = this.loop.getInterpolationAlpha();
     this.renderer.render(this.snake, this.food, this.state, alpha);
   }
