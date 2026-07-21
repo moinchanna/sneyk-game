@@ -2,6 +2,9 @@
 
 A premium, minimal, retro pixel-grid Snake game built for the modern browser. Inspired by the classic Nokia 6110 gameplay, built with strict TypeScript, HTML5 Canvas, Web Audio API, and custom design styles.
 
+### [🎮 Play Sneyk Live Demo](https://moinchanna.github.io/sneyk-game/)
+*(Deployment configuration is automated via GitHub Actions to GitHub Pages)*
+
 ## Features
 
 - **Retro-Modern Visuals**: Custom dark surface container centered on a light-gray canvas, inspired by high-end application wrappers.
