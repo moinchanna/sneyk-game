@@ -35,29 +35,31 @@ export class Renderer {
     const parent = this.canvas.parentElement;
     if (!parent) return;
 
-    // Get the bounding box of the parent container
-    const size = Math.min(parent.clientWidth, parent.clientHeight, 600);
+    const width = parent.clientWidth;
+    const height = parent.clientHeight;
+    const size = Math.min(width, height);
 
-    // Scale canvas by devicePixelRatio for crisp rendering
-    this.dpr = window.devicePixelRatio || 1;
-    this.canvas.width = size * this.dpr;
-    this.canvas.height = size * this.dpr;
+    // Limit dpr to a maximum of 2 to avoid performance issues on high-res displays
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Set styling dimensions
+    this.canvas.width = Math.round(size * this.dpr);
+    this.canvas.height = Math.round(size * this.dpr);
+
     this.canvas.style.width = `${size}px`;
     this.canvas.style.height = `${size}px`;
 
-    // Compute active cell size based on pixel grid spacing
-    this.cellSize = (size * this.dpr) / GRID_CELLS;
-    
-    // Scale coordinate system to match canvas coordinates
-    this.ctx.restore();
-    this.ctx.save();
+    // Reset transform to identity, then apply the dpr scaling
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.scale(this.dpr, this.dpr);
+
+    // cellSize in CSS pixels
+    this.cellSize = size / GRID_CELLS;
   }
 
   public clear(): void {
-    this.ctx.fillStyle = '#050507';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const size = this.canvas.clientWidth;
+    this.ctx.fillStyle = '#050506'; // --board-bg
+    this.ctx.fillRect(0, 0, size, size);
   }
 
   /**
@@ -66,25 +68,25 @@ export class Renderer {
   public spawnParticles(gridPos: Position, color: string): void {
     if (this.settings.reducedMotion) return;
 
-    const count = 16;
-    // Map grid space coordinate to canvas screen pixels
+    const count = 12;
+    // Map grid space coordinate to canvas screen pixels (CSS coordinates)
     const centerX = gridPos.x * this.cellSize + this.cellSize / 2;
     const centerY = gridPos.y * this.cellSize + this.cellSize / 2;
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 3.5;
-      
+      const speed = 1.0 + Math.random() * 2.5;
+
       this.particles.push({
         x: centerX,
         y: centerY,
-        vx: Math.cos(angle) * speed * this.dpr,
-        vy: Math.sin(angle) * speed * this.dpr,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
         color,
         alpha: 1,
-        size: (2 + Math.random() * 3) * this.dpr,
+        size: 1.5 + Math.random() * 2, // size in CSS pixels
         life: 0,
-        maxLife: 25 + Math.floor(Math.random() * 15) // ticks
+        maxLife: 20 + Math.floor(Math.random() * 10) // ticks
       });
     }
   }
@@ -93,13 +95,13 @@ export class Renderer {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       if (!p) continue;
-      
+
       p.x += p.vx;
       p.y += p.vy;
-      p.vx *= 0.95; // Friction
-      p.vy *= 0.95;
+      p.vx *= 0.94; // Friction
+      p.vy *= 0.94;
       p.life++;
-      p.alpha = 1 - p.life / p.maxLife;
+      p.alpha = Math.max(0, 1 - p.life / p.maxLife);
 
       if (p.life >= p.maxLife) {
         this.particles.splice(i, 1);
@@ -119,13 +121,7 @@ export class Renderer {
     }
   }
 
-  private drawRoundedRect(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    r: number
-  ): void {
+  private drawRoundedRect(x: number, y: number, w: number, h: number, r: number): void {
     this.ctx.beginPath();
     this.ctx.moveTo(x + r, y);
     this.ctx.lineTo(x + w - r, y);
@@ -140,22 +136,24 @@ export class Renderer {
   }
 
   private drawGrid(): void {
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
-    this.ctx.lineWidth = 1;
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+    this.ctx.lineWidth = 0.5;
+
+    const boardSize = GRID_CELLS * this.cellSize;
 
     for (let i = 0; i <= GRID_CELLS; i++) {
       const pos = i * this.cellSize;
-      
+
       // Vertical lines
       this.ctx.beginPath();
       this.ctx.moveTo(pos, 0);
-      this.ctx.lineTo(pos, this.canvas.height);
+      this.ctx.lineTo(pos, boardSize);
       this.ctx.stroke();
 
       // Horizontal lines
       this.ctx.beginPath();
       this.ctx.moveTo(0, pos);
-      this.ctx.lineTo(this.canvas.width, pos);
+      this.ctx.lineTo(boardSize, pos);
       this.ctx.stroke();
     }
   }
@@ -163,62 +161,66 @@ export class Renderer {
   private drawSnake(snake: Snake): void {
     const body = snake.getBody();
     const direction = snake.getDirection();
-    const gap = 1.5 * this.dpr; // Small gap between cells
-    const radius = 3 * this.dpr; // Soft corner radius
+    const radius = 1; // Small pixel corner radius
+
+    // Each segment uses ~66% of the cell size
+    const segmentSize = Math.max(3, Math.floor(this.cellSize * 0.66));
+    const segmentOffset = (this.cellSize - segmentSize) / 2;
 
     body.forEach((segment, index) => {
       const isHead = index === 0;
-      
-      // Calculate drawing dimensions with cell gap
-      const x = segment.x * this.cellSize + gap;
-      const y = segment.y * this.cellSize + gap;
-      const size = this.cellSize - gap * 2;
 
-      // Color styling: Head is bright white, body has a soft gradient trailing off
-      let fillStyle = '#ffffff';
-      if (!isHead) {
-        // Calculate decay factor based on snake length
-        const decay = Math.min(index / 15, 0.6);
-        const brightness = Math.floor(229 - decay * 120); // Fade from off-white (#e5e5ea) to mid-gray
-        fillStyle = `rgb(${brightness}, ${brightness}, ${brightness + 4})`; // Keep blue value slightly higher for cool gray
+      const x = segment.x * this.cellSize + segmentOffset;
+      const y = segment.y * this.cellSize + segmentOffset;
+
+      let fillStyle = '#b9b9bd'; // --snake-color
+      if (isHead) {
+        fillStyle = '#eeeeef'; // --snake-head-color
+      } else {
+        const decay = Math.min(index / 30, 0.4);
+        const brightness = Math.floor(185 - decay * 80);
+        fillStyle = `rgb(${brightness}, ${brightness}, ${brightness + 4})`;
       }
 
       this.ctx.fillStyle = fillStyle;
-      this.drawRoundedRect(x, y, size, size, radius);
+      this.drawRoundedRect(x, y, segmentSize, segmentSize, radius);
       this.ctx.fill();
 
-      // Draw eyes on the head based on movement direction
+      // Draw eyes on the head based on direction
       if (isHead) {
         this.ctx.fillStyle = '#050507';
-        const eyeSize = 2 * this.dpr;
-        const eyeOffset = 4 * this.dpr;
+        const eyeSize = 1;
+        const eyeOffset = Math.max(1, Math.floor(segmentSize * 0.25));
 
-        let eye1X = 0, eye1Y = 0, eye2X = 0, eye2Y = 0;
+        let eye1X = 0,
+          eye1Y = 0,
+          eye2X = 0,
+          eye2Y = 0;
 
         switch (direction) {
           case 'UP':
             eye1X = x + eyeOffset;
             eye1Y = y + eyeOffset;
-            eye2X = x + size - eyeOffset - eyeSize;
+            eye2X = x + segmentSize - eyeOffset - eyeSize;
             eye2Y = y + eyeOffset;
             break;
           case 'DOWN':
             eye1X = x + eyeOffset;
-            eye1Y = y + size - eyeOffset - eyeSize;
-            eye2X = x + size - eyeOffset - eyeSize;
-            eye2Y = y + size - eyeOffset - eyeSize;
+            eye1Y = y + segmentSize - eyeOffset - eyeSize;
+            eye2X = x + segmentSize - eyeOffset - eyeSize;
+            eye2Y = y + segmentSize - eyeOffset - eyeSize;
             break;
           case 'LEFT':
             eye1X = x + eyeOffset;
             eye1Y = y + eyeOffset;
             eye2X = x + eyeOffset;
-            eye2Y = y + size - eyeOffset - eyeSize;
+            eye2Y = y + segmentSize - eyeOffset - eyeSize;
             break;
           case 'RIGHT':
-            eye1X = x + size - eyeOffset - eyeSize;
+            eye1X = x + segmentSize - eyeOffset - eyeSize;
             eye1Y = y + eyeOffset;
-            eye2X = x + size - eyeOffset - eyeSize;
-            eye2Y = y + size - eyeOffset - eyeSize;
+            eye2X = x + segmentSize - eyeOffset - eyeSize;
+            eye2Y = y + segmentSize - eyeOffset - eyeSize;
             break;
         }
 
@@ -230,32 +232,32 @@ export class Renderer {
 
   private drawFood(food: Food): void {
     const pos = food.getPosition();
-    const gap = 1 * this.dpr;
-    const x = pos.x * this.cellSize + gap;
-    const y = pos.y * this.cellSize + gap;
-    const size = this.cellSize - gap * 2;
-    const radius = 2 * this.dpr;
+    const segmentSize = Math.max(3, Math.floor(this.cellSize * 0.66));
+    const segmentOffset = (this.cellSize - segmentSize) / 2;
+    const x = pos.x * this.cellSize + segmentOffset;
+    const y = pos.y * this.cellSize + segmentOffset;
+    const radius = 1; // Small pixel corner radius
 
     this.ctx.save();
 
-    // Pulse factor based on time (oscillate between 0.8 and 1.2 scale)
+    // Pulse factor based on time
     let pulse = 1.0;
     if (!this.settings.reducedMotion) {
-      pulse = 0.9 + Math.sin(this.pulseTime * 0.15) * 0.1;
+      pulse = 0.95 + Math.sin(this.pulseTime * 0.15) * 0.05;
     }
 
-    const centerX = x + size / 2;
-    const centerY = y + size / 2;
-    const drawSize = size * pulse;
+    const centerX = x + segmentSize / 2;
+    const centerY = y + segmentSize / 2;
+    const drawSize = segmentSize * pulse;
 
-    // Draw glowing shadow background for food
+    // Subtle red glow
     if (!this.settings.reducedMotion) {
-      this.ctx.shadowColor = 'rgba(255, 59, 48, 0.6)';
-      this.ctx.shadowBlur = 10 * this.dpr;
+      this.ctx.shadowColor = 'rgba(215, 32, 32, 0.4)'; // --food-color glow
+      this.ctx.shadowBlur = 4;
     }
 
     // Main red rectangle
-    this.ctx.fillStyle = '#ff3b30'; // Bright red
+    this.ctx.fillStyle = '#d72020'; // --food-color
     this.drawRoundedRect(
       centerX - drawSize / 2,
       centerY - drawSize / 2,
@@ -265,22 +267,18 @@ export class Renderer {
     );
     this.ctx.fill();
 
-    // Reset shadow blur to draw inner detailing
+    // Reset shadow
     this.ctx.shadowBlur = 0;
 
-    // Detail for color-blind accessibility (white cross in the center of the food)
+    // Cross detail for accessibility
     this.ctx.strokeStyle = '#ffffff';
-    this.ctx.lineWidth = 1.5 * this.dpr;
+    this.ctx.lineWidth = 1;
     this.ctx.beginPath();
-    
-    const crossSize = 2 * this.dpr;
-    // Horizontal line
+    const crossSize = 1.5;
     this.ctx.moveTo(centerX - crossSize, centerY);
     this.ctx.lineTo(centerX + crossSize, centerY);
-    // Vertical line
     this.ctx.moveTo(centerX, centerY - crossSize);
     this.ctx.lineTo(centerX, centerY + crossSize);
-    
     this.ctx.stroke();
 
     this.ctx.restore();
@@ -294,7 +292,7 @@ export class Renderer {
     if (state !== 'HOME') {
       this.drawSnake(snake);
       this.drawFood(food);
-      
+
       this.updateParticles();
       this.drawParticles();
     }

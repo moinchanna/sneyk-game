@@ -35,7 +35,7 @@ export class Game {
     this.snake = new Snake(GRID_CELLS, INITIAL_SNAKE_LENGTH);
     // Initialize food off-screen or empty, it will be placed on ready
     this.food = new Food(this.snake.getBody(), GRID_CELLS);
-    
+
     this.input = new InputManager();
     this.renderer = new Renderer(canvas);
     this.audio = new AudioManager();
@@ -108,16 +108,16 @@ export class Game {
     this.snake.reset(GRID_CELLS, INITIAL_SNAKE_LENGTH);
     this.food.spawn(this.snake.getBody(), GRID_CELLS);
     this.input.reset();
-    
+
     this.loop.setSpeed(this.currentSpeed);
     this.renderer.resetParticles();
 
     this.setState('READY');
-    
+
     // Start game loop rendering, but pause the simulation accumulator
     this.loop.start();
     this.loop.pauseSimulation();
-    
+
     this.notifyScore();
   }
 
@@ -156,7 +156,7 @@ export class Game {
 
   private initInputBindings(): void {
     // When directions are input, automatically start the game if in READY state
-    this.input.onDirectionInput((_dir) => {
+    this.input.onDirectionInput(_dir => {
       if (this.state === 'READY') {
         this.startSimulation();
       }
@@ -201,7 +201,7 @@ export class Game {
 
     // Get next buffered direction
     const nextDir = this.input.nextDirection();
-    
+
     // Move the snake
     this.snake.move(nextDir);
 
@@ -227,9 +227,16 @@ export class Game {
 
   private handleFoodEaten(pos: Position): void {
     this.snake.grow();
-    
+
     // Add score
     this.score += 10;
+
+    // Update best score immediately if it exceeds the current best
+    if (this.score > this.bestScore) {
+      this.bestScore = this.score;
+      Storage.saveBestScore(this.bestScore);
+    }
+
     this.notifyScore();
 
     // Sound effect
@@ -256,7 +263,7 @@ export class Game {
   private triggerGameOver(msg: string): void {
     this.setState('GAME_OVER');
     this.loop.pauseSimulation();
-    
+
     // Play Game Over Sound
     this.audio.playGameOver();
 
@@ -276,7 +283,7 @@ export class Game {
     }
 
     this.notifyScore();
-    
+
     // Set message details in UI
     const gameOverMsg = document.getElementById('game-over-msg');
     if (gameOverMsg) {

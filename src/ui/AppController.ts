@@ -20,7 +20,7 @@ export class AppController {
 
     // Instantiate game engine
     this.game = new Game(this.canvas);
-    
+
     // Instantiate UI screens
     this.homeScreen = new HomeScreen();
     this.gameScreen = new GameScreen();
@@ -57,9 +57,9 @@ export class AppController {
     });
 
     // 3. Game Engine Events -> Game Screen UI Updates
-    this.game.registerStateChange((state) => {
+    this.game.registerStateChange(state => {
       this.gameScreen.updateState(state);
-      
+
       // If we go back to Home state from engine control (e.g. Escape key)
       if (state === 'HOME') {
         this.transitionToHome();
@@ -79,10 +79,10 @@ export class AppController {
     this.homeScreen.hide();
     this.gameScreen.show();
     this.game.prepareGame();
-    
+
     // Auto-focus canvas for instant keyboard responsiveness
     this.canvas.focus();
-    
+
     // Handle Retina scaling / responsive fit
     this.game.renderer.resize();
   }

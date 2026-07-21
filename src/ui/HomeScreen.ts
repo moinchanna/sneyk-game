@@ -60,7 +60,7 @@ export class HomeScreen {
     const parent = this.canvasWrap;
     const width = parent.clientWidth;
     const height = parent.clientHeight;
-    
+
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
@@ -69,37 +69,14 @@ export class HomeScreen {
   }
 
   private initDecorativeSnake(): void {
-    // Pre-create a nice long winding path that matches the reference design
-    // The snake wanders slowly around the layout
-    const startY = 12;
-    this.snakeBody = [
-      { x: 12, y: startY },
-      { x: 11, y: startY },
-      { x: 10, y: startY },
-      { x: 9, y: startY },
-      { x: 8, y: startY },
-      { x: 7, y: startY },
-      { x: 6, y: startY },
-      { x: 5, y: startY },
-      { x: 4, y: startY },
-      { x: 3, y: startY },
-      { x: 3, y: startY + 1 },
-      { x: 3, y: startY + 2 },
-      { x: 3, y: startY + 3 },
-      { x: 4, y: startY + 3 },
-      { x: 5, y: startY + 3 },
-      { x: 6, y: startY + 3 },
-      { x: 7, y: startY + 3 },
-      { x: 8, y: startY + 3 },
-      { x: 9, y: startY + 3 },
-      { x: 10, y: startY + 3 },
-      { x: 11, y: startY + 3 },
-      { x: 12, y: startY + 3 },
-      { x: 12, y: startY + 2 },
-      { x: 12, y: startY + 1 }
-    ];
+    // Pre-create a winding path in the bottom half of the 40x40 grid
+    this.snakeBody = [];
+    const startY = 25;
+    for (let i = 0; i < 24; i++) {
+      this.snakeBody.push({ x: 28 - i, y: startY });
+    }
     this.direction = 'UP';
-    this.food = { x: 14, y: 10 };
+    this.food = { x: 30, y: 22 };
   }
 
   public show(): void {
@@ -146,27 +123,33 @@ export class HomeScreen {
     const head = this.snakeBody[0];
     if (!head) return;
 
-    // Simple automatic logic to wander around the screen
-    // Keep within cells 2 to 17 to stay in view
     let nextX = head.x;
     let nextY = head.y;
 
-    // Determine direction change based on borders to wander in a rectangular loop
-    if (this.direction === 'UP' && head.y <= 4) {
+    // Determine direction change based on borders to wander in a rectangular loop (bottom-middle region)
+    if (this.direction === 'UP' && head.y <= 18) {
       this.direction = 'RIGHT';
-    } else if (this.direction === 'RIGHT' && head.x >= 16) {
+    } else if (this.direction === 'RIGHT' && head.x >= 35) {
       this.direction = 'DOWN';
-    } else if (this.direction === 'DOWN' && head.y >= 16) {
+    } else if (this.direction === 'DOWN' && head.y >= 35) {
       this.direction = 'LEFT';
-    } else if (this.direction === 'LEFT' && head.x <= 3) {
+    } else if (this.direction === 'LEFT' && head.x <= 5) {
       this.direction = 'UP';
     }
 
     switch (this.direction) {
-      case 'UP': nextY--; break;
-      case 'DOWN': nextY++; break;
-      case 'LEFT': nextX--; break;
-      case 'RIGHT': nextX++; break;
+      case 'UP':
+        nextY--;
+        break;
+      case 'DOWN':
+        nextY++;
+        break;
+      case 'LEFT':
+        nextX--;
+        break;
+      case 'RIGHT':
+        nextX++;
+        break;
     }
 
     // Move snake
@@ -176,8 +159,8 @@ export class HomeScreen {
     // If snake eats food, move food to a new decorative spot
     if (nextX === this.food.x && nextY === this.food.y) {
       this.food = {
-        x: 3 + Math.floor(Math.random() * 12),
-        y: 4 + Math.floor(Math.random() * 12)
+        x: 6 + Math.floor(Math.random() * 28),
+        y: 19 + Math.floor(Math.random() * 15)
       };
     }
   }
@@ -198,12 +181,14 @@ export class HomeScreen {
     const foodY = this.food.y * this.cellSize + gap;
     const foodSize = this.cellSize - gap * 2;
     ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(foodX, foodY, foodSize, foodSize, radius) : ctx.rect(foodX, foodY, foodSize, foodSize);
+    ctx.roundRect
+      ? ctx.roundRect(foodX, foodY, foodSize, foodSize, radius)
+      : ctx.rect(foodX, foodY, foodSize, foodSize);
     ctx.fill();
 
     // Draw snake body (light-gray squares with spaces)
     ctx.fillStyle = '#e5e5ea';
-    this.snakeBody.forEach((segment) => {
+    this.snakeBody.forEach(segment => {
       const x = segment.x * this.cellSize + gap;
       const y = segment.y * this.cellSize + gap;
       const size = this.cellSize - gap * 2;

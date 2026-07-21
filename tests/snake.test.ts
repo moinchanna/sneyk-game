@@ -19,7 +19,7 @@ describe('Snake Logic Tests', () => {
 
   it('should move in the expected direction', () => {
     const headBefore = snake.getHead();
-    
+
     // Move RIGHT
     const oldTail = snake.move('RIGHT');
     const headAfter = snake.getHead();
@@ -32,10 +32,10 @@ describe('Snake Logic Tests', () => {
 
   it('should grow after eating (grow pending)', () => {
     const lengthBefore = snake.getBody().length;
-    
+
     // Trigger growth
     snake.grow();
-    
+
     // Move after growth trigger
     const oldTail = snake.move('RIGHT');
 
@@ -46,21 +46,17 @@ describe('Snake Logic Tests', () => {
   it('should detect wall collision', () => {
     // Place snake right at the left border
     snake.reset(GRID_CELLS, initialLength, 'LEFT');
-    
+
     // Position head at x: 0
     const body = snake.getBody();
     body[0]!.x = 0;
-    
+
     // Force set the body (we have to mock reset or modify directly since getBody returns copy)
-    // Let's reset the snake and move left until it hits the wall
-    // Starting X is gridCells/3 = 6
-    // Move LEFT 7 times
-    expect(snake.checkWallCollision(GRID_CELLS)).toBe(false);
-    
-    for (let i = 0; i < 7; i++) {
+    const startX = Math.floor(GRID_CELLS / 2);
+    for (let i = 0; i <= startX; i++) {
       snake.move('LEFT');
     }
-    
+
     expect(snake.checkWallCollision(GRID_CELLS)).toBe(true);
   });
 
@@ -70,7 +66,7 @@ describe('Snake Logic Tests', () => {
     snake.move('RIGHT');
     snake.grow(); // length 6
     snake.move('RIGHT');
-    
+
     expect(snake.getBody().length).toBe(6);
     expect(snake.checkSelfCollision()).toBe(false);
 

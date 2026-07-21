@@ -15,7 +15,11 @@ export class Food {
    * Spawn food on a random cell that does not overlap with the snake.
    * Uses a safe list of empty cells to avoid infinite loop matching when grid is almost full.
    */
-  public spawn(snakeBody: Position[], gridCells: number, randomFn: () => number = Math.random): boolean {
+  public spawn(
+    snakeBody: Position[],
+    gridCells: number,
+    randomFn: () => number = Math.random
+  ): boolean {
     const emptyCells: Position[] = [];
 
     // Create set of occupied coords for faster O(1) lookup
@@ -41,12 +45,12 @@ export class Food {
     // Choose random empty cell
     const randomIndex = Math.floor(randomFn() * emptyCells.length);
     const chosenCell = emptyCells[randomIndex];
-    
+
     if (chosenCell) {
       this.position = chosenCell;
       return true;
     }
-    
+
     return false;
   }
 }

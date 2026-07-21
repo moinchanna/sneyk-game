@@ -3,7 +3,8 @@
 A premium, minimal, retro pixel-grid Snake game built for the modern browser. Inspired by the classic Nokia 6110 gameplay, built with strict TypeScript, HTML5 Canvas, Web Audio API, and custom design styles.
 
 ### [🎮 Play Sneyk Live Demo](https://moinchanna.github.io/sneyk-game/)
-*(Deployment configuration is automated via GitHub Actions to GitHub Pages)*
+
+_(Deployment configuration is automated via GitHub Actions to GitHub Pages)_
 
 ## Features
 
@@ -21,12 +22,14 @@ A premium, minimal, retro pixel-grid Snake game built for the modern browser. In
 ## Controls
 
 ### Keyboard (Desktop)
+
 - **Arrow Keys** or **WASD**: Slither in direction.
 - **Space** or **P**: Pause / Resume.
 - **R**: Restart game.
 - **Escape**: Exit to Home Screen.
 
 ### Touch (Mobile & Tablet)
+
 - **Swipe Gestures**: Swipe anywhere on the game board container to slither.
 - **Action Buttons**: Visible start prompt overlays and HUD controls for easy tap navigation.
 
@@ -35,6 +38,7 @@ A premium, minimal, retro pixel-grid Snake game built for the modern browser. In
 ## Architecture Overview
 
 The codebase is structured modularly:
+
 ```
 src/
 ├── main.ts              # App entrypoint (imports styles & initializes AppController)
@@ -62,30 +66,37 @@ src/
 To run the game locally, you need [Node.js](https://nodejs.org) installed.
 
 1. **Install Dependencies**:
+
    ```bash
    npm install
    ```
 
 2. **Start Dev Server**:
+
    ```bash
    npm run dev
    ```
+
    Open `http://localhost:3000` in your web browser.
 
 3. **Run Unit Tests**:
+
    ```bash
    npm run test
    ```
 
 4. **Lint Code**:
+
    ```bash
    npm run lint
    ```
 
 5. **Build Production Bundle**:
+
    ```bash
    npm run build
    ```
+
    Build outputs are compiled into the `dist/` directory.
 
 6. **Preview Production Build**:
@@ -100,6 +111,7 @@ To run the game locally, you need [Node.js](https://nodejs.org) installed.
 Sneyk is configured for continuous deployment using GitHub Actions.
 
 The deployment configuration is defined in [.github/workflows/deploy.yml](.github/workflows/deploy.yml). When code is pushed to the `main` branch, the workflow will automatically:
+
 1. Checkout the repository.
 2. Setup Node.js.
 3. Install dependencies using `npm ci`.

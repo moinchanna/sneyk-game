@@ -58,7 +58,7 @@ export class GameLoop {
 
     if (!this.isSimPaused) {
       this.accumulator += delta;
-      
+
       while (this.accumulator >= this.tickDelay) {
         this.onTickCallback();
         this.accumulator -= this.tickDelay;

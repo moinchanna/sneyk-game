@@ -17,7 +17,7 @@ describe('Food Logic Tests', () => {
 
     // Spawn food
     const food = new Food(snakeBody, GRID_CELLS);
-    
+
     // The only empty cell is (5, 5), so food MUST spawn there
     expect(food.getPosition()).toEqual({ x: 5, y: 5 });
   });

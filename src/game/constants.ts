@@ -1,8 +1,8 @@
-export const GRID_CELLS = 20;
+export const GRID_CELLS = 40;
 
-export const INITIAL_SPEED = 150; // ms per tick
-export const MIN_SPEED = 60; // fastest update speed
-export const SPEED_INCREMENT = 4; // decrease tick delay (increase speed) by this amount per food eaten
+export const INITIAL_SPEED = 95; // ms per tick (faster starting speed)
+export const MIN_SPEED = 55; // fastest update speed
+export const SPEED_INCREMENT = 2; // decrease tick delay by this amount per food eaten
 
 export const INITIAL_SNAKE_LENGTH = 4;
 

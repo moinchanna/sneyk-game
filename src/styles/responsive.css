@@ -87,6 +87,10 @@
     width: 100%;
   }
 
+  body.game-active {
+    --hud-height: 110px;
+  }
+
   /* Game screen adjustments */
   #game-screen {
     padding: 16px;
@@ -172,7 +176,7 @@
     padding: 10px 16px;
     font-size: 14px;
   }
-  
+
   .overlay-stats {
     padding: 12px 20px;
     gap: 20px;

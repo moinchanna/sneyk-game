@@ -77,7 +77,26 @@ export class InputManager {
   private initKeyboardListeners(): void {
     window.addEventListener('keydown', (e: KeyboardEvent) => {
       // Prevent defaults for gameplay keys when focusing or active
-      const gameplayKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'p', 'P', 'r', 'R', 'Escape', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'];
+      const gameplayKeys = [
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        ' ',
+        'p',
+        'P',
+        'r',
+        'R',
+        'Escape',
+        'w',
+        'W',
+        's',
+        'S',
+        'a',
+        'A',
+        'd',
+        'D'
+      ];
       if (gameplayKeys.includes(e.key)) {
         // Only prevent scrolling with Space or Arrow keys to keep normal form controls working elsewhere
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
@@ -129,9 +148,10 @@ export class InputManager {
 
   private handleDirectionInput(dir: Direction): void {
     // Get the last requested direction in queue or current direction
-    const lastRequested = this.directionQueue.length > 0 
-      ? this.directionQueue[this.directionQueue.length - 1] 
-      : this.currentDirection;
+    const lastRequested =
+      this.directionQueue.length > 0
+        ? this.directionQueue[this.directionQueue.length - 1]
+        : this.currentDirection;
 
     // Check if the requested direction is the opposite of the last requested direction (illegal 180 turn)
     if (lastRequested && OPPOSITE_DIRECTIONS[dir] === lastRequested) {
@@ -141,7 +161,7 @@ export class InputManager {
     // Limit buffer size to 2 to prevent excessive lag in inputs
     if (this.directionQueue.length < 2) {
       this.directionQueue.push(dir);
-      
+
       // Notify direction change callbacks (e.g. to start the game)
       this.onDirectionCallbacks.forEach(cb => cb(dir));
     }

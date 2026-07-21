@@ -48,8 +48,11 @@ export class Storage {
     try {
       const pref = localStorage.getItem(STORAGE_KEYS.REDUCED_MOTION);
       if (pref === null) {
-        // Fallback to system preference
-        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Fallback to system preference if matchMedia exists
+        if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+          return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+        return false;
       }
       return pref === 'true';
     } catch (e) {

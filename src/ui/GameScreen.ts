@@ -15,7 +15,7 @@ export class GameScreen {
   private readyOverlay: HTMLElement;
   private pauseOverlay: HTMLElement;
   private gameOverOverlay: HTMLElement;
-  
+
   // Overlay interactive elements
   private btnOverlayResume: HTMLElement;
   private btnOverlayRestart: HTMLElement;
@@ -64,10 +64,25 @@ export class GameScreen {
     const finalBest = document.getElementById('final-best');
 
     if (
-      !screen || !curScore || !bestScore || !soundBtn || !pauseBtn || !restartBtn || !homeBtn ||
-      !soundOn || !soundOff || !readyOver || !pauseOver || !gameOverOver ||
-      !overlayResume || !overlayRestart || !overlayPlayAgain || !overlayHome || !startMobile ||
-      !finalScore || !finalBest
+      !screen ||
+      !curScore ||
+      !bestScore ||
+      !soundBtn ||
+      !pauseBtn ||
+      !restartBtn ||
+      !homeBtn ||
+      !soundOn ||
+      !soundOff ||
+      !readyOver ||
+      !pauseOver ||
+      !gameOverOver ||
+      !overlayResume ||
+      !overlayRestart ||
+      !overlayPlayAgain ||
+      !overlayHome ||
+      !startMobile ||
+      !finalScore ||
+      !finalBest
     ) {
       throw new Error('Game screen element selection failed');
     }
@@ -168,6 +183,18 @@ export class GameScreen {
     this.btnOverlayPlayAgain.addEventListener('click', () => this.onRestartTriggered?.());
     this.btnOverlayHome.addEventListener('click', () => this.onHomeTriggered?.());
     this.btnStartMobile.addEventListener('click', () => this.onStartTriggered?.());
+
+    // Prevent touch events on overlays from bubbling up to the canvas-container touch listeners
+    const blockTouch = (e: TouchEvent) => {
+      e.stopPropagation();
+    };
+
+    const overlays = [this.readyOverlay, this.pauseOverlay, this.gameOverOverlay];
+    overlays.forEach(overlay => {
+      overlay.addEventListener('touchstart', blockTouch, { passive: true });
+      overlay.addEventListener('touchmove', blockTouch, { passive: true });
+      overlay.addEventListener('touchend', blockTouch, { passive: true });
+    });
   }
 
   private setupTouchDetectForMobile(): void {
@@ -183,9 +210,19 @@ export class GameScreen {
   }
 
   // Register state bindings
-  public bindPause(cb: () => void): void { this.onPauseTriggered = cb; }
-  public bindRestart(cb: () => void): void { this.onRestartTriggered = cb; }
-  public bindHome(cb: () => void): void { this.onHomeTriggered = cb; }
-  public bindSoundToggle(cb: () => void): void { this.onSoundToggleTriggered = cb; }
-  public bindStart(cb: () => void): void { this.onStartTriggered = cb; }
+  public bindPause(cb: () => void): void {
+    this.onPauseTriggered = cb;
+  }
+  public bindRestart(cb: () => void): void {
+    this.onRestartTriggered = cb;
+  }
+  public bindHome(cb: () => void): void {
+    this.onHomeTriggered = cb;
+  }
+  public bindSoundToggle(cb: () => void): void {
+    this.onSoundToggleTriggered = cb;
+  }
+  public bindStart(cb: () => void): void {
+    this.onStartTriggered = cb;
+  }
 }
