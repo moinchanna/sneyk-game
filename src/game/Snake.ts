@@ -3,21 +3,22 @@ import { DIRECTIONS } from './constants';
 
 export class Snake {
   private body: Position[] = [];
+  private previousBody: Position[] = [];
   private direction: Direction = 'RIGHT';
   private growPending = 0;
 
-  constructor(gridCells: number, initialLength: number) {
-    this.reset(gridCells, initialLength);
+  constructor(cols: number, rows: number, initialLength: number) {
+    this.reset(cols, rows, initialLength);
   }
 
-  public reset(gridCells: number, initialLength: number, dir: Direction = 'RIGHT'): void {
+  public reset(cols: number, rows: number, initialLength: number, dir: Direction = 'RIGHT'): void {
     this.direction = dir;
     this.growPending = 0;
     this.body = [];
 
-    // Center snake vertically, start a few cells from the left
-    const startY = Math.floor(gridCells / 2);
-    const startX = Math.floor(gridCells / 3);
+    // Center snake horizontally and vertically
+    const startX = Math.floor(cols / 2);
+    const startY = Math.floor(rows / 2);
 
     for (let i = 0; i < initialLength; i++) {
       this.body.push({
@@ -25,10 +26,12 @@ export class Snake {
         y: startY
       });
     }
+
+    // Initialize previousBody to match current body on reset
+    this.previousBody = this.body.map(pos => ({ ...pos }));
   }
 
   public getBody(): Position[] {
-    // Return a copy to avoid mutation outside
     return this.body.map(pos => ({ ...pos }));
   }
 
@@ -53,6 +56,9 @@ export class Snake {
    * Returns the removed tail position if it didn't grow, or null if it did.
    */
   public move(nextDir: Direction): Position | null {
+    // Store current state as previous body for rendering interpolation
+    this.previousBody = this.body.map(pos => ({ ...pos }));
+
     this.direction = nextDir;
     const currentHead = this.getHead();
     const vector = DIRECTIONS[nextDir];
@@ -79,11 +85,42 @@ export class Snake {
     }
   }
 
+  /**
+   * Calculates smooth interpolated positions for rendering
+   */
+  public getInterpolatedBody(alpha: number): Position[] {
+    if (this.previousBody.length === 0) {
+      return this.getBody();
+    }
+
+    return this.body.map((segment, index) => {
+      // For a new tail segment created during growth, interpolate from the old tail
+      const prevSegment =
+        this.previousBody[index] || this.previousBody[this.previousBody.length - 1];
+      if (!prevSegment) {
+        return { ...segment };
+      }
+
+      // Check if coordinates difference is > 1 (e.g. wall wrapping or reset snaps)
+      // If so, disable interpolation for this segment and snap immediately to prevent diagonal cutting
+      const dx = Math.abs(segment.x - prevSegment.x);
+      const dy = Math.abs(segment.y - prevSegment.y);
+      if (dx > 1 || dy > 1) {
+        return { ...segment };
+      }
+
+      return {
+        x: prevSegment.x + (segment.x - prevSegment.x) * alpha,
+        y: prevSegment.y + (segment.y - prevSegment.y) * alpha
+      };
+    });
+  }
+
   public checkSelfCollision(): boolean {
-    if (this.body.length <= 4) return false; // Snake cannot crash into itself if length is <= 4
+    if (this.body.length <= 4) return false;
 
     const head = this.getHead();
-    // Check if head matches any of the body segments (skipping index 0 which is the head itself)
+    // Check if head matches any of the body segments (skipping head itself at index 0)
     for (let i = 1; i < this.body.length; i++) {
       const segment = this.body[i];
       if (segment && segment.x === head.x && segment.y === head.y) {
@@ -93,8 +130,8 @@ export class Snake {
     return false;
   }
 
-  public checkWallCollision(gridCells: number): boolean {
+  public checkWallCollision(cols: number, rows: number): boolean {
     const head = this.getHead();
-    return head.x < 0 || head.y < 0 || head.x >= gridCells || head.y >= gridCells;
+    return head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows;
   }
 }

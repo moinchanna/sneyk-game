@@ -1,7 +1,7 @@
 import { Position, GameState, Particle, GameSettings } from './types';
 import { Snake } from './Snake';
 import { Food } from './Food';
-import { GRID_CELLS } from './constants';
+import { BOARD_COLUMNS, BOARD_ROWS } from './constants';
 import { Storage } from './Storage';
 
 export class Renderer {
@@ -37,29 +37,29 @@ export class Renderer {
 
     const width = parent.clientWidth;
     const height = parent.clientHeight;
-    const size = Math.min(width, height);
 
     // Limit dpr to a maximum of 2 to avoid performance issues on high-res displays
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    this.canvas.width = Math.round(size * this.dpr);
-    this.canvas.height = Math.round(size * this.dpr);
+    this.canvas.width = Math.round(width * this.dpr);
+    this.canvas.height = Math.round(height * this.dpr);
 
-    this.canvas.style.width = `${size}px`;
-    this.canvas.style.height = `${size}px`;
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
 
-    // Reset transform to identity, then apply the dpr scaling
+    // Reset transform, then scale coordinates for crisp rendering in CSS pixels
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.scale(this.dpr, this.dpr);
 
-    // cellSize in CSS pixels
-    this.cellSize = size / GRID_CELLS;
+    // cellSize based on grid dimensions (perfectly square because container is 16:9)
+    this.cellSize = width / BOARD_COLUMNS;
   }
 
   public clear(): void {
-    const size = this.canvas.clientWidth;
+    const w = this.canvas.clientWidth;
+    const h = this.canvas.clientHeight;
     this.ctx.fillStyle = '#050506'; // --board-bg
-    this.ctx.fillRect(0, 0, size, size);
+    this.ctx.fillRect(0, 0, w, h);
   }
 
   /**
@@ -69,7 +69,6 @@ export class Renderer {
     if (this.settings.reducedMotion) return;
 
     const count = 12;
-    // Map grid space coordinate to canvas screen pixels (CSS coordinates)
     const centerX = gridPos.x * this.cellSize + this.cellSize / 2;
     const centerY = gridPos.y * this.cellSize + this.cellSize / 2;
 
@@ -136,35 +135,37 @@ export class Renderer {
   }
 
   private drawGrid(): void {
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
     this.ctx.lineWidth = 0.5;
 
-    const boardSize = GRID_CELLS * this.cellSize;
+    const boardWidth = BOARD_COLUMNS * this.cellSize;
+    const boardHeight = BOARD_ROWS * this.cellSize;
 
-    for (let i = 0; i <= GRID_CELLS; i++) {
+    for (let i = 0; i <= BOARD_COLUMNS; i++) {
       const pos = i * this.cellSize;
-
-      // Vertical lines
       this.ctx.beginPath();
       this.ctx.moveTo(pos, 0);
-      this.ctx.lineTo(pos, boardSize);
+      this.ctx.lineTo(pos, boardHeight);
       this.ctx.stroke();
+    }
 
-      // Horizontal lines
+    for (let j = 0; j <= BOARD_ROWS; j++) {
+      const pos = j * this.cellSize;
       this.ctx.beginPath();
       this.ctx.moveTo(0, pos);
-      this.ctx.lineTo(boardSize, pos);
+      this.ctx.lineTo(boardWidth, pos);
       this.ctx.stroke();
     }
   }
 
-  private drawSnake(snake: Snake): void {
-    const body = snake.getBody();
+  private drawSnake(snake: Snake, alpha: number): void {
+    const body = snake.getInterpolatedBody(alpha);
     const direction = snake.getDirection();
     const radius = 1; // Small pixel corner radius
 
-    // Each segment uses ~66% of the cell size
-    const segmentSize = Math.max(3, Math.floor(this.cellSize * 0.66));
+    // Segment occupies 72% of each logical cell
+    const segmentRatio = 0.72;
+    const segmentSize = Math.max(8, Math.floor(this.cellSize * segmentRatio));
     const segmentOffset = (this.cellSize - segmentSize) / 2;
 
     body.forEach((segment, index) => {
@@ -177,7 +178,7 @@ export class Renderer {
       if (isHead) {
         fillStyle = '#eeeeef'; // --snake-head-color
       } else {
-        const decay = Math.min(index / 30, 0.4);
+        const decay = Math.min(index / 24, 0.4);
         const brightness = Math.floor(185 - decay * 80);
         fillStyle = `rgb(${brightness}, ${brightness}, ${brightness + 4})`;
       }
@@ -186,11 +187,11 @@ export class Renderer {
       this.drawRoundedRect(x, y, segmentSize, segmentSize, radius);
       this.ctx.fill();
 
-      // Draw eyes on the head based on direction
+      // Draw eyes on the head
       if (isHead) {
         this.ctx.fillStyle = '#050507';
-        const eyeSize = 1;
-        const eyeOffset = Math.max(1, Math.floor(segmentSize * 0.25));
+        const eyeSize = 2;
+        const eyeOffset = Math.max(2, Math.floor(segmentSize * 0.22));
 
         let eye1X = 0,
           eye1Y = 0,
@@ -232,18 +233,19 @@ export class Renderer {
 
   private drawFood(food: Food): void {
     const pos = food.getPosition();
-    const segmentSize = Math.max(3, Math.floor(this.cellSize * 0.66));
+    // Food occupies 74% of each logical cell
+    const foodRatio = 0.74;
+    const segmentSize = Math.max(9, Math.floor(this.cellSize * foodRatio));
     const segmentOffset = (this.cellSize - segmentSize) / 2;
     const x = pos.x * this.cellSize + segmentOffset;
     const y = pos.y * this.cellSize + segmentOffset;
-    const radius = 1; // Small pixel corner radius
+    const radius = 1;
 
     this.ctx.save();
 
-    // Pulse factor based on time
     let pulse = 1.0;
     if (!this.settings.reducedMotion) {
-      pulse = 0.95 + Math.sin(this.pulseTime * 0.15) * 0.05;
+      pulse = 0.96 + Math.sin(this.pulseTime * 0.15) * 0.04;
     }
 
     const centerX = x + segmentSize / 2;
@@ -252,8 +254,8 @@ export class Renderer {
 
     // Subtle red glow
     if (!this.settings.reducedMotion) {
-      this.ctx.shadowColor = 'rgba(215, 32, 32, 0.4)'; // --food-color glow
-      this.ctx.shadowBlur = 4;
+      this.ctx.shadowColor = 'rgba(215, 32, 32, 0.5)';
+      this.ctx.shadowBlur = 6;
     }
 
     // Main red rectangle
@@ -284,13 +286,13 @@ export class Renderer {
     this.ctx.restore();
   }
 
-  public render(snake: Snake, food: Food, state: GameState): void {
+  public render(snake: Snake, food: Food, state: GameState, alpha = 0): void {
     this.pulseTime++;
     this.clear();
     this.drawGrid();
 
     if (state !== 'HOME') {
-      this.drawSnake(snake);
+      this.drawSnake(snake, alpha);
       this.drawFood(food);
 
       this.updateParticles();

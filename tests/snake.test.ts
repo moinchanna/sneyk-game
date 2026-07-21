@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Snake } from '../src/game/Snake';
-import { GRID_CELLS } from '../src/game/constants';
+import { BOARD_COLUMNS, BOARD_ROWS } from '../src/game/constants';
 
 describe('Snake Logic Tests', () => {
   let snake: Snake;
   const initialLength = 4;
 
   beforeEach(() => {
-    // Initialize snake with default length
-    snake = new Snake(GRID_CELLS, initialLength);
+    // Initialize snake with default length on 32x18 board
+    snake = new Snake(BOARD_COLUMNS, BOARD_ROWS, initialLength);
   });
 
   it('should initialize with correct length and default direction RIGHT', () => {
@@ -44,20 +44,18 @@ describe('Snake Logic Tests', () => {
   });
 
   it('should detect wall collision', () => {
-    // Place snake right at the left border
-    snake.reset(GRID_CELLS, initialLength, 'LEFT');
+    // Reset snake moving LEFT
+    snake.reset(BOARD_COLUMNS, BOARD_ROWS, initialLength, 'LEFT');
 
-    // Position head at x: 0
-    const body = snake.getBody();
-    body[0]!.x = 0;
+    expect(snake.checkWallCollision(BOARD_COLUMNS, BOARD_ROWS)).toBe(false);
 
-    // Force set the body (we have to mock reset or modify directly since getBody returns copy)
-    const startX = Math.floor(GRID_CELLS / 2);
+    // Move LEFT until we hit the wall (startX = BOARD_COLUMNS / 2 = 16)
+    const startX = Math.floor(BOARD_COLUMNS / 2);
     for (let i = 0; i <= startX; i++) {
       snake.move('LEFT');
     }
 
-    expect(snake.checkWallCollision(GRID_CELLS)).toBe(true);
+    expect(snake.checkWallCollision(BOARD_COLUMNS, BOARD_ROWS)).toBe(true);
   });
 
   it('should detect self-collision', () => {
@@ -77,5 +75,21 @@ describe('Snake Logic Tests', () => {
     snake.move('DOWN');
 
     expect(snake.checkSelfCollision()).toBe(true);
+  });
+
+  it('should compute correct interpolated positions', () => {
+    // Before first move, previousBody matches body
+    const initialBody = snake.getBody();
+    const interpolatedInit = snake.getInterpolatedBody(0.5);
+    expect(interpolatedInit).toEqual(initialBody);
+
+    // Move RIGHT
+    const nextBody = snake.getBody();
+    snake.move('RIGHT');
+
+    // Interpolation at alpha = 0.5
+    const interpolated = snake.getInterpolatedBody(0.5);
+    expect(interpolated[0]!.x).toBe(nextBody[0]!.x + 0.5);
+    expect(interpolated[0]!.y).toBe(nextBody[0]!.y);
   });
 });

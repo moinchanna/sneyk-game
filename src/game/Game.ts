@@ -7,7 +7,8 @@ import { AudioManager } from './AudioManager';
 import { GameLoop } from './GameLoop';
 import { Storage } from './Storage';
 import {
-  GRID_CELLS,
+  BOARD_COLUMNS,
+  BOARD_ROWS,
   INITIAL_SPEED,
   MIN_SPEED,
   SPEED_INCREMENT,
@@ -32,9 +33,8 @@ export class Game {
   private onScoreChangeCallback: ((score: number, best: number) => void) | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.snake = new Snake(GRID_CELLS, INITIAL_SNAKE_LENGTH);
-    // Initialize food off-screen or empty, it will be placed on ready
-    this.food = new Food(this.snake.getBody(), GRID_CELLS);
+    this.snake = new Snake(BOARD_COLUMNS, BOARD_ROWS, INITIAL_SNAKE_LENGTH);
+    this.food = new Food(this.snake.getBody(), BOARD_COLUMNS, BOARD_ROWS);
 
     this.input = new InputManager();
     this.renderer = new Renderer(canvas);
@@ -105,8 +105,8 @@ export class Game {
     this.bestScore = Storage.getBestScore();
     this.currentSpeed = INITIAL_SPEED;
 
-    this.snake.reset(GRID_CELLS, INITIAL_SNAKE_LENGTH);
-    this.food.spawn(this.snake.getBody(), GRID_CELLS);
+    this.snake.reset(BOARD_COLUMNS, BOARD_ROWS, INITIAL_SNAKE_LENGTH);
+    this.food.spawn(this.snake.getBody(), BOARD_COLUMNS, BOARD_ROWS);
     this.input.reset();
 
     this.loop.setSpeed(this.currentSpeed);
@@ -206,7 +206,7 @@ export class Game {
     this.snake.move(nextDir);
 
     // Check collisions
-    if (this.snake.checkWallCollision(GRID_CELLS)) {
+    if (this.snake.checkWallCollision(BOARD_COLUMNS, BOARD_ROWS)) {
       this.triggerGameOver('You crashed into the wall!');
       return;
     }
@@ -246,7 +246,7 @@ export class Game {
     this.renderer.spawnParticles(pos, '#ff3b30');
 
     // Spawn new food
-    const spawned = this.food.spawn(this.snake.getBody(), GRID_CELLS);
+    const spawned = this.food.spawn(this.snake.getBody(), BOARD_COLUMNS, BOARD_ROWS);
     if (!spawned) {
       // Grid is full! Snake filled the entire board
       this.triggerGameOver('Congratulations! You filled the grid!');
@@ -294,7 +294,8 @@ export class Game {
   }
 
   private render(): void {
-    this.renderer.render(this.snake, this.food, this.state);
+    const alpha = this.loop.getInterpolationAlpha();
+    this.renderer.render(this.snake, this.food, this.state, alpha);
   }
 
   private notifyScore(): void {

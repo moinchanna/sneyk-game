@@ -1,7 +1,7 @@
 export class GameLoop {
   private lastTime = 0;
   private accumulator = 0;
-  private tickDelay = 150; // ms per tick
+  private tickDelay = 72; // ms per tick (default FAST)
   private rafId: number | null = null;
   private isRunning = false;
   private isSimPaused = false;
@@ -41,7 +41,13 @@ export class GameLoop {
 
   public resumeSimulation(): void {
     this.isSimPaused = false;
-    this.lastTime = performance.now(); // Reset lastTime to avoid huge delta jumps
+    this.lastTime = performance.now(); // Reset lastTime to avoid delta jumps
+    this.accumulator = 0; // Clear accumulator backlog
+  }
+
+  public getInterpolationAlpha(): number {
+    if (this.isSimPaused) return 0;
+    return Math.max(0, Math.min(1.0, this.accumulator / this.tickDelay));
   }
 
   private loop = (timestamp: number): void => {
@@ -50,22 +56,27 @@ export class GameLoop {
     let delta = timestamp - this.lastTime;
     this.lastTime = timestamp;
 
-    // Cap delta at 1 second to prevent excessive simulation catchup spikes
-    // (e.g. if the tab was suspended or machine went to sleep)
-    if (delta > 1000) {
-      delta = this.tickDelay;
-    }
+    // Cap frame delta at 80ms to prevent huge simulation catchup spikes
+    delta = Math.min(delta, 80);
 
     if (!this.isSimPaused) {
       this.accumulator += delta;
 
+      let updates = 0;
       while (this.accumulator >= this.tickDelay) {
         this.onTickCallback();
         this.accumulator -= this.tickDelay;
+        updates++;
+
+        // Limit catch-up updates per frame to 2 to stay stable under load
+        if (updates >= 2) {
+          this.accumulator = 0; // Clear remaining backlog
+          break;
+        }
       }
     }
 
-    // Always render every frame to support screen refreshes, particle animations, glows, etc.
+    // Always render every frame to support screen refreshes, smooth interpolation, particles, etc.
     this.onRenderCallback();
 
     this.rafId = requestAnimationFrame(this.loop);

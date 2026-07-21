@@ -1,4 +1,4 @@
-import { GRID_CELLS } from '../game/constants';
+import { BOARD_COLUMNS } from '../game/constants';
 import { Position } from '../game/types';
 
 export class HomeScreen {
@@ -19,35 +19,32 @@ export class HomeScreen {
   constructor() {
     const home = document.getElementById('home-screen');
     const wrap = document.getElementById('decorative-snake-canvas-wrap');
+
     if (!home || !wrap) {
-      throw new Error('Home screen elements not found in DOM');
+      throw new Error('Home screen elements selection failed');
     }
+
     this.container = home;
     this.canvasWrap = wrap;
-    this.initDecorativeCanvas();
+
+    this.initCanvas();
+    this.initDecorativeSnake();
+
+    window.addEventListener('resize', this.handleResize);
   }
 
-  private initDecorativeCanvas(): void {
-    // Create background canvas
+  private initCanvas(): void {
     this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.zIndex = '1';
-    this.canvas.style.opacity = '0.15'; // Very subtle overlay
-    this.canvas.style.pointerEvents = 'none';
-
+    this.canvas.className = 'decorative-snake-canvas';
     this.canvasWrap.appendChild(this.canvas);
+
     const context = this.canvas.getContext('2d');
-    if (context) {
-      this.ctx = context;
+    if (!context) {
+      throw new Error('Could not acquire 2D context for decorative canvas');
     }
+    this.ctx = context;
 
     this.resizeCanvas();
-    this.initDecorativeSnake();
-    window.addEventListener('resize', this.handleResize);
   }
 
   private handleResize = (): void => {
@@ -65,18 +62,18 @@ export class HomeScreen {
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
 
-    this.cellSize = (width * dpr) / GRID_CELLS;
+    this.cellSize = (width * dpr) / BOARD_COLUMNS;
   }
 
   private initDecorativeSnake(): void {
-    // Pre-create a winding path in the bottom half of the 40x40 grid
+    // Pre-create a winding path in the bottom half of the 32x18 grid
     this.snakeBody = [];
-    const startY = 25;
-    for (let i = 0; i < 24; i++) {
-      this.snakeBody.push({ x: 28 - i, y: startY });
+    const startY = 12;
+    for (let i = 0; i < 20; i++) {
+      this.snakeBody.push({ x: 24 - i, y: startY });
     }
     this.direction = 'UP';
-    this.food = { x: 30, y: 22 };
+    this.food = { x: 26, y: 10 };
   }
 
   public show(): void {
@@ -127,13 +124,13 @@ export class HomeScreen {
     let nextY = head.y;
 
     // Determine direction change based on borders to wander in a rectangular loop (bottom-middle region)
-    if (this.direction === 'UP' && head.y <= 18) {
+    if (this.direction === 'UP' && head.y <= 8) {
       this.direction = 'RIGHT';
-    } else if (this.direction === 'RIGHT' && head.x >= 35) {
+    } else if (this.direction === 'RIGHT' && head.x >= 28) {
       this.direction = 'DOWN';
-    } else if (this.direction === 'DOWN' && head.y >= 35) {
+    } else if (this.direction === 'DOWN' && head.y >= 16) {
       this.direction = 'LEFT';
-    } else if (this.direction === 'LEFT' && head.x <= 5) {
+    } else if (this.direction === 'LEFT' && head.x <= 4) {
       this.direction = 'UP';
     }
 
@@ -159,8 +156,8 @@ export class HomeScreen {
     // If snake eats food, move food to a new decorative spot
     if (nextX === this.food.x && nextY === this.food.y) {
       this.food = {
-        x: 6 + Math.floor(Math.random() * 28),
-        y: 19 + Math.floor(Math.random() * 15)
+        x: 5 + Math.floor(Math.random() * 22),
+        y: 9 + Math.floor(Math.random() * 6)
       };
     }
   }
