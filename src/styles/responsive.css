@@ -1,0 +1,180 @@
+/* Tablet / Desktop Viewports <= 1024px */
+@media (max-width: 1024px) {
+  #app-container {
+    width: 95vw;
+    min-height: 92vh;
+  }
+
+  .app-header {
+    padding: 24px 32px;
+  }
+
+  .page-section {
+    padding: 60px 32px;
+  }
+
+  .cards-grid {
+    gap: 16px;
+  }
+
+  .app-footer {
+    padding: 30px 32px;
+  }
+}
+
+/* Mobile Viewports <= 768px */
+@media (max-width: 768px) {
+  body {
+    background-color: var(--color-surface); /* Make body merge with container on mobile */
+  }
+
+  #app-container {
+    width: 100vw;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .app-header {
+    padding: 20px 24px;
+  }
+
+  /* Simplify Header Nav */
+  .header-nav {
+    display: none; /* Hide header navigation links */
+  }
+
+  .app-header .btn-primary {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  /* Hero adjustments */
+  .hero {
+    padding: 60px 20px;
+  }
+
+  .hero-paragraph {
+    margin-bottom: 30px;
+  }
+
+  /* How to Play cards stacked */
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .instruction-card {
+    padding: 24px;
+  }
+
+  .page-section {
+    padding: 48px 24px;
+  }
+
+  /* Footer stacked */
+  .app-footer {
+    padding: 32px 24px;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .footer-nav {
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Game screen adjustments */
+  #game-screen {
+    padding: 16px;
+  }
+
+  .game-hud {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+    max-width: 500px;
+  }
+
+  .score-panel {
+    justify-content: space-between;
+  }
+
+  .controls-panel {
+    justify-content: space-between;
+  }
+
+  /* Standardize tap target sizes for mobile */
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Landscape Mobile or Very Small Screens */
+@media (max-height: 600px) and (orientation: landscape) {
+  #app-container {
+    min-height: 100vh;
+  }
+
+  .hero {
+    padding: 30px 20px;
+  }
+
+  .page-section {
+    padding: 32px 20px;
+  }
+
+  #game-screen {
+    flex-direction: row;
+    gap: 24px;
+    padding: 12px;
+  }
+
+  .game-hud {
+    flex-direction: column;
+    justify-content: center;
+    width: auto;
+    height: 100%;
+    margin-bottom: 0;
+  }
+
+  .score-panel {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .controls-panel {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .canvas-container {
+    max-width: 80vh; /* Scaled by screen height */
+    max-height: 80vh;
+  }
+}
+
+/* Viewport width extreme small <= 360px */
+@media (max-width: 360px) {
+  .app-header {
+    padding: 16px;
+  }
+
+  .brand-name {
+    font-size: 20px;
+  }
+
+  .btn-overlay {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .overlay-stats {
+    padding: 12px 20px;
+    gap: 20px;
+  }
+}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Sneyk — You Grew Up. Snake Didn't.</title>
+    <meta name="description" content="A premium, minimal, retro pixel-grid Snake game. Fully responsive, featuring custom sounds, keyboard and touch swipe controls, and persistent local scores." />
+    <meta name="theme-color" content="#0a0a0c" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sneyk — You Grew Up. Snake Didn't." />
+    <meta property="og:description" content="A premium, minimal, retro pixel-grid Snake game. Clean mechanics, no filler, pure gameplay." />
+    <meta property="og:image" content="social-preview.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Sneyk — You Grew Up. Snake Didn't." />
+    <meta property="twitter:description" content="A premium, minimal, retro pixel-grid Snake game. Clean mechanics, no filler, pure gameplay." />
+    <meta property="twitter:image" content="social-preview.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <!-- Skip navigation link for accessibility -->
+    <a href="#main-content" class="sr-only">Skip to content</a>
+
+    <div id="app-container" role="main">
+      <div id="main-content" tabindex="-1">
+        
+        <!-- ==========================================
+             LANDING SCREEN
+             ========================================== -->
+        <section id="home-screen" aria-label="Home Screen">
+          <header class="app-header">
+            <div class="brand">
+              <div class="pixel-logo" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <h1 class="brand-name">Sneyk</h1>
+            </div>
+            
+            <nav class="header-nav" aria-label="Primary Navigation">
+              <a href="#how-to-play" class="nav-link">How to Play</a>
+              <a href="#about" class="nav-link">About</a>
+            </nav>
+            
+            <button class="btn-primary play-now-trigger" aria-label="Play Sneyk now">
+              Play Now
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </header>
+
+          <main class="hero">
+            <div class="bg-grid-overlay" id="decorative-grid"></div>
+            <div class="decorative-snake-container" id="decorative-snake-canvas-wrap">
+              <!-- Inline decorative canvas elements can go here or be injected -->
+            </div>
+            
+            <h2 class="hero-heading">
+              You Grew Up. Snake Didn't.<br/>
+              <span class="hero-gradient">Play It Again.</span>
+            </h2>
+            
+            <p class="hero-paragraph">
+              No loot boxes. No noise. Just you, the grid, and the growing tail.
+            </p>
+            
+            <div class="hero-actions">
+              <button class="btn-primary play-now-trigger" aria-label="Start playing Sneyk">
+                Play Now
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+            </div>
+          </main>
+
+          <section id="how-to-play" class="page-section" aria-label="How to Play Instructions">
+            <h3 class="section-title">How to Play</h3>
+            <div class="cards-grid">
+              <article class="instruction-card">
+                <span class="card-num">01</span>
+                <h4 class="card-title">Move</h4>
+                <p class="card-desc">Use the Arrow keys or WASD on desktop. On mobile or touch devices, swipe in the direction you want the snake to slither.</p>
+              </article>
+              <article class="instruction-card">
+                <span class="card-num">02</span>
+                <h4 class="card-title">Eat</h4>
+                <p class="card-desc">Navigate toward the red food square. Each food eaten increases your length, boosts your score, and slightly accelerates the pace.</p>
+              </article>
+              <article class="instruction-card">
+                <span class="card-num">03</span>
+                <h4 class="card-title">Survive</h4>
+                <p class="card-desc">Avoid colliding with the container walls or your own growing tail. Crash, and the run is over. Good luck!</p>
+              </article>
+            </div>
+          </section>
+
+          <hr class="section-divider" />
+
+          <section id="about" class="page-section" aria-label="About this game">
+            <h3 class="section-title">About</h3>
+            <div class="about-content">
+              <p>
+                Sneyk is a modern retro tribute to the classic arcade and mobile Snake games of the late 90s. Reimagined with premium dark-mode visuals, smooth input controls, responsive scaling, and locally-synthesized sound effects.
+              </p>
+              <p>
+                This implementation is 100% client-side, open-source, and free of trackers, ads, or cookies. It is built strictly using TypeScript, lightweight modern CSS, and HTML5 Canvas.
+              </p>
+              <p>
+                Source code is hosted on GitHub. You can view the project, report bugs, or contribute via the <a href="https://github.com/moinchanna/sneyk-game" class="text-link" target="_blank" rel="noopener noreferrer">GitHub repository</a>.
+              </p>
+            </div>
+          </section>
+
+          <footer class="app-footer">
+            <div class="footer-left">
+              <span>&copy; <span id="current-year">2026</span> Sneyk. Open source under the <a href="https://github.com/moinchanna/sneyk-game/blob/main/LICENSE" target="_blank" class="text-link" rel="noopener noreferrer">MIT License</a>.</span>
+            </div>
+            <div class="footer-nav">
+              <a href="https://github.com/moinchanna/sneyk-game" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+              <a href="#how-to-play" class="footer-link">Instructions</a>
+            </div>
+          </footer>
+        </section>
+
+        <!-- ==========================================
+             GAME SCREEN
+             ========================================== -->
+        <section id="game-screen" class="hidden" aria-label="Game Play Screen">
+          <div class="game-hud">
+            <div class="score-panel">
+              <div class="hud-item">
+                <span class="hud-label">Score</span>
+                <span id="current-score" class="hud-value" aria-live="polite">0</span>
+              </div>
+              <div class="hud-item">
+                <span class="hud-label">Best</span>
+                <span id="best-score" class="hud-value">0</span>
+              </div>
+            </div>
+            
+            <div class="controls-panel">
+              <button id="btn-sound" class="btn-icon" aria-label="Toggle Sound" title="Toggle Sound">
+                <!-- Sound On SVG -->
+                <svg id="svg-sound-on" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <!-- Sound Off SVG (Hidden by default) -->
+                <svg id="svg-sound-off" class="hidden" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                </svg>
+              </button>
+              
+              <button id="btn-pause" class="btn-icon" aria-label="Pause Game" title="Pause Game (Space or P)">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+              </button>
+              
+              <button id="btn-restart" class="btn-icon" aria-label="Restart Game" title="Restart Game (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+              </button>
+              
+              <button id="btn-home" class="btn-icon" aria-label="Return to Home Screen" title="Exit to Home (Escape)">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="canvas-container" id="canvas-container">
+            <canvas id="game-canvas" width="400" height="400">
+              Your browser does not support the HTML5 Canvas element. This is a canvas-based game where you guide the Sneyk to eat red blocks.
+            </canvas>
+            
+            <!-- Pause Overlay -->
+            <div id="pause-overlay" class="game-overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+              <h4 id="pause-title" class="overlay-title">Paused</h4>
+              <p class="overlay-subtitle">Press Space or P to resume</p>
+              <div class="overlay-actions">
+                <button id="btn-overlay-resume" class="btn-overlay btn-overlay-primary">Resume</button>
+                <button id="btn-overlay-restart" class="btn-overlay btn-overlay-secondary">Restart</button>
+              </div>
+            </div>
+
+            <!-- Game Over Overlay -->
+            <div id="game-over-overlay" class="game-overlay" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
+              <h4 id="game-over-title" class="overlay-title">Game Over</h4>
+              <p class="overlay-subtitle" id="game-over-msg">You hit the wall!</p>
+              <div class="overlay-stats">
+                <div class="hud-item">
+                  <span class="hud-label">Score</span>
+                  <span id="final-score" class="hud-value">0</span>
+                </div>
+                <div class="hud-item">
+                  <span class="hud-label">Best</span>
+                  <span id="final-best" class="hud-value">0</span>
+                </div>
+              </div>
+              <div class="overlay-actions">
+                <button id="btn-overlay-play-again" class="btn-overlay btn-overlay-primary">Play Again</button>
+                <button id="btn-overlay-home" class="btn-overlay btn-overlay-secondary">Exit to Home</button>
+              </div>
+            </div>
+
+            <!-- Ready / Start Prompt Overlay -->
+            <div id="ready-overlay" class="game-overlay active" role="dialog" aria-modal="true" aria-labelledby="ready-title">
+              <h4 id="ready-title" class="overlay-title">Ready</h4>
+              <p class="overlay-subtitle" id="ready-prompt-text">Press any Arrow key, WASD, or swipe to start</p>
+              <button id="btn-start-game-mobile" class="btn-overlay btn-overlay-primary hidden">Tap to Start</button>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+    </div>
+
+    <!-- PWA & Accessibility status announcements -->
+    <div id="announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

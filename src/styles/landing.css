@@ -1,0 +1,330 @@
+/* Landing page container */
+#home-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 48px;
+  position: relative;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logo CSS pixel grid logo */
+.pixel-logo {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.pixel-logo span {
+  background-color: transparent;
+  border-radius: 1px;
+}
+
+/* Make an "S" logo with grid squares */
+.pixel-logo span:nth-child(1),
+.pixel-logo span:nth-child(2),
+.pixel-logo span:nth-child(3),
+.pixel-logo span:nth-child(4),
+.pixel-logo span:nth-child(5),
+.pixel-logo span:nth-child(9),
+.pixel-logo span:nth-child(10),
+.pixel-logo span:nth-child(11),
+.pixel-logo span:nth-child(12),
+.pixel-logo span:nth-child(16),
+.pixel-logo span:nth-child(13),
+.pixel-logo span:nth-child(14),
+.pixel-logo span:nth-child(15) {
+  background-color: var(--color-snake);
+}
+.pixel-logo span:nth-child(7) {
+  background-color: var(--color-food);
+}
+
+.brand-name {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Navigation */
+.header-nav {
+  display: flex;
+  gap: 32px;
+}
+
+.nav-link {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: var(--color-text);
+}
+
+/* Play buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  padding: 10px 20px;
+  border-radius: var(--radius-button);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-text);
+  color: var(--color-surface);
+  border-color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.btn-primary svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* Hero Section */
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px 80px 24px;
+  position: relative;
+  z-index: 5;
+  pointer-events: none; /* Let background grid receive clicks or swipe movements */
+}
+
+.hero > * {
+  pointer-events: auto; /* Re-enable pointer events for hero items */
+}
+
+.hero-heading {
+  font-size: clamp(36px, 6vw, 76px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  max-width: 900px;
+  margin-bottom: 24px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #a1a1aa 0%, #3f3f46 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-paragraph {
+  font-size: clamp(16px, 2.5vw, 19px);
+  color: var(--color-text-muted);
+  max-width: 580px;
+  line-height: 1.5;
+  margin-bottom: 40px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+}
+
+.hero-actions {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+
+.hero-actions .btn-primary {
+  padding: 14px 28px;
+  font-size: 17px;
+}
+
+/* Background Grid Overlay */
+.bg-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle 50vw at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle 50vw at 50% 50%, black 20%, transparent 80%);
+}
+
+/* Decorative Snake path styling on landing page */
+.decorative-snake-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Content Sections (How to Play & About) */
+.section-divider {
+  border: 0;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.page-section {
+  padding: 80px 48px;
+  border-top: 1px solid var(--color-border);
+  position: relative;
+  z-index: 2;
+  background-color: var(--color-surface);
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 40px;
+}
+
+/* How to Play cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.instruction-card {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  padding: 32px;
+  border-radius: 12px;
+  transition: border-color 0.25s ease;
+}
+
+.instruction-card:hover {
+  border-color: var(--color-text-muted);
+}
+
+.card-num {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-bottom: 24px;
+  display: block;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.card-desc {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* About Section */
+.about-content {
+  max-width: 800px;
+  font-size: 16px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.about-content p {
+  margin-bottom: 20px;
+}
+
+.about-content p:last-child {
+  margin-bottom: 0;
+}
+
+.text-link {
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-text-muted);
+  transition: border-color 0.2s ease;
+}
+
+.text-link:hover {
+  border-color: var(--color-text);
+}
+
+/* Footer styling */
+.app-footer {
+  padding: 40px 48px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  position: relative;
+  z-index: 2;
+  background-color: var(--color-surface);
+}
+
+.footer-nav {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-link:hover {
+  color: var(--color-text);
+}
+
+/* Keyframes */
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion settings */
+@media (prefers-reduced-motion: reduce) {
+  .hero-heading,
+  .hero-paragraph,
+  .hero-actions {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
